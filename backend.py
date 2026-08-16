@@ -1,36 +1,22 @@
 import os
 from datetime import datetime, timezone
-
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
-app = Flask(__name__)
-
-CORS(
-    app,
-    resources={
-        r"/api/*": {"origins": "*"},
-        r"/health": {"origins": "*"},
-        r"/": {"origins": "*"},
-    },
-)
+app = Flask(__name__, static_folder=".")
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 state = {
     "signals": [],
     "news": [],
     "market": {},
-    "updated": None,
+    "updated": None
 }
 
 
 @app.get("/")
-def root():
-    return jsonify({
-        "ok": True,
-        "service": "rogger-options-terminal-api",
-        "status": "online",
-        "health": "/health",
-    })
+def home():
+    return send_from_directory(".", "index.html")
 
 
 @app.get("/health")
@@ -38,7 +24,7 @@ def health():
     return jsonify({
         "ok": True,
         "service": "rogger-options-terminal-api",
-        "time": datetime.now(timezone.utc).isoformat(),
+        "time": datetime.now(timezone.utc).isoformat()
     })
 
 
@@ -56,17 +42,18 @@ def tradingview_webhook():
             "raw": request.data.decode("utf-8", "ignore")
         }
 
-    state["signals"].insert(0, {
+    signal = {
         "received_at": datetime.now(timezone.utc).isoformat(),
-        "payload": payload,
-    })
+        "payload": payload
+    }
 
+    state["signals"].insert(0, signal)
     state["signals"] = state["signals"][:100]
     state["updated"] = datetime.now(timezone.utc).isoformat()
 
     return jsonify({
         "ok": True,
-        "message": "TradingView alert received",
+        "message": "TradingView alert received"
     })
 
 
@@ -88,6 +75,15 @@ def update_market():
     state["updated"] = datetime.now(timezone.utc).isoformat()
 
     return jsonify({"ok": True})
+
+
+@app.get("/api/ping")
+def ping():
+    return jsonify({
+        "ok": True,
+        "message": "Rogger Options Terminal online",
+        "time": datetime.now(timezone.utc).isoformat()
+    })
 
 
 if __name__ == "__main__":
