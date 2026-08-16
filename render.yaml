@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: rogger-options-terminal-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn backend:app
+    healthCheckPath: /health
+    autoDeploy: true
