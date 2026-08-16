@@ -1,0 +1,12 @@
+//@version=6
+indicator("ROGGER Terminal Signal Layer",overlay=true)
+ema9=ta.ema(close,9), ema21=ta.ema(close,21)
+bosUp=close>ta.highest(high[1],5), bosDn=close<ta.lowest(low[1],5)
+mssUp=ta.crossover(ema9,ema21), mssDn=ta.crossunder(ema9,ema21)
+call=ema9>ema21 and (bosUp or mssUp)
+put=ema9<ema21 and (bosDn or mssDn)
+plot(ema9,"EMA 9"),plot(ema21,"EMA 21")
+plotshape(call,"CALL",shape.triangleup,location.belowbar,size=size.tiny,text="CALL")
+plotshape(put,"PUT",shape.triangledown,location.abovebar,size=size.tiny,text="PUT")
+alertcondition(call,"ROGGER_CALL",'{"signal":"CALL","symbol":"{{ticker}}","price":"{{close}}","tf":"{{interval}}","time":"{{time}}"}')
+alertcondition(put,"ROGGER_PUT",'{"signal":"PUT","symbol":"{{ticker}}","price":"{{close}}","tf":"{{interval}}","time":"{{time}}"}')
